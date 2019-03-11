@@ -18,7 +18,7 @@ public class Klant {
 		this.informatie = informatie;
 	}
 	
-	@Override
+	@Override //aaaa
 	public String toString() {
 		return "Klant [klantID=" + klantID + ", naam=" + naam + ", achternaam=" + achternaam + ", straathuisnummer="
 				+ straathuisnummer + ", plaats=" + plaats + ", informatie=" + informatie + "]";
