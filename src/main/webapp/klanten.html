@@ -1,0 +1,387 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Klanten</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css"
+	media="only screen and (min-width: 750px)" href="style.css">
+<link rel="stylesheet" media="only screen and (max-width: 750px)"
+	href="stylenarrow.css" />
+</head>
+<body>
+	<div id="body" style="overflow-x:auto;">
+		<br>
+		<br>
+		<br>
+		<a href="javascript:void(0);" onclick="logout()" class="grid-item">Log-Out</a>
+		<table id="klantenTable" border=1>
+			<tr>
+				<th>KlantID</th>
+				<th>Naam</th>
+				<th>Achternaam</th>
+				<th>Locatie</th>
+			</tr>
+
+
+		</table>
+		<br>
+		<br>
+		<button id="createKlant">Klant maken</button>
+		<div id="createFormId">
+			<form id="createForm">
+				<br> Naam:
+				<br>
+				<input class="update" type="text" name="naam" id="createName">
+				<br>
+				<br> Achternaam:
+				<br>
+				<input class="update" type="text" name="achternaam" id="createAchternaam">
+				<br>
+				<br> Woonplaats:
+				<br>
+				<input class="update" type="text" name="woonplaats" id="createWoonplaats">
+				<br>
+				<br> Straat + Huisnummer:
+				<br>
+				<input class="update" type="text" name="straat" id="createStraat">
+				<br>
+				<br> Informatie:
+				<br>
+				<textarea rows="4" cols="50" name="informatie" form="createForm" id="createInformatie"></textarea>
+				<br>
+				<br>
+				<input type="button" value="Klant toevoegen" id="post" />
+				<br>
+				<div id="resultExecute"></div>
+			</form>
+		</div>
+
+
+		<!-- The Modal -->
+		<div id="myModal" class="modal">
+
+			<!-- Modal content -->
+			<div class="modal-content-grid">
+			<div class="klanten-grid">				
+				<p id="klantidleftcorner"></p>
+				<label id="KlantID"></label>
+				<br>
+				<label id="Naam"></label>
+				<label id="Achternaam"></label>
+				<br>
+				<label id="Straat"></label>
+				<label id="Plaats"></label>
+				<br>
+				<label id="Informatie"></label>
+				<br>
+				<br>
+				<input type="button" value="Delete" id="delete" />
+			</div>
+			<div class="klanten-grid">
+			<span class="close">&times;</span>
+			<form id="updateForm">
+						<br> Naam:
+						<br>
+						<input class="update" type="text" name="naam" id="createNameUpdate">
+						<br>
+						<br> Achternaam:
+						<br>
+						<input class="update" type="text" name="achternaam" id="createAchternaamUpdate">
+						<br>
+						<br>  Straat:
+						<br>
+						<input class="update" type="text" name="straat" id="createStraatUpdate">
+						<br>
+						<br> Woonplaats:
+						<br>
+						<input class="update" type="text" name="woonplaats" id="createWoonplaatsUpdate">
+						<br>
+						<br> Informatie:
+						<br>
+						<textarea rows="4" cols="50" name="informatie" form="updateForm" id="createInformatieUpdate"></textarea>
+						<br>
+						<br>
+						<input type="button" value="Klant Wijzigen" id="put" />
+						</form>
+				</div>
+				</div>
+
+		</div>
+	</div>
+<script>
+document.querySelector("#put").addEventListener("click", function () {
+
+
+	//we halen de ProductID en de forminformatie op.
+	var x = document.getElementById("klantidleftcorner").innerHTML;
+	if (confirm("Wilt u het product met klantennummer: " + x + " aanpassen?")) {
+		if (validateUpdateForm()) {
+			var formData = new FormData(document.querySelector('#updateForm'));
+			var encData = new URLSearchParams(formData.entries());
+
+			//verbinding maken met de database, we gebruiken nogmaals de JWT om ervoor te zorgen dat niet iedereen het mag. we geven het productid als pathparam mee
+			fetch("Database/Klanten/" + x, { "method": "PUT", "body": encData, "headers": { 'Authorization': 'Bearer ' + window.sessionStorage.getItem("myJWT") } })
+				.then(function (response) {
+					if (response.ok) {
+						console.log("Klant updated!");
+						document.querySelector("#resultExecute").innerHTML = "Gelukt!";
+						window.location.href = "/klanten.html";
+					} //geluk, dan komt er een duidelijke melding
+					else if (response.status = 404) {
+						console.log("Klant not found!");
+					}
+					else console.log("Cannot update Klant!");
+
+
+				});
+		}
+	}
+})
+	function logout() {
+		window.sessionStorage.removeItem("myJWT");
+		window.location.href = "/index.html";
+	}
+	//alle klanten ophalen
+	function loadKlanten() {
+		var host = window.location.host;
+		fetch("Database/Klanten", { "method": "GET", "headers": { 'Authorization': 'Bearer ' + window.sessionStorage.getItem("myJWT") } })
+			.then(response => response.json())
+			.then(function (myJson) {
+				for (i = 0; i < myJson.length; i++) { //for de grote van de array die we terugkrijgen
+					var table = document.getElementById("klantenTable");
+
+					var newRow = table.insertRow(1);//nieuwe rij op plaats 1 in de tabel, de voorgaande rijen worden naar benede ngedaan
+
+					//alle gegevens als attribuut, dan kunnen we ze later nog gebruiken
+					newRow.setAttribute("klantID", myJson[i].klantID);
+					newRow.setAttribute("naam", myJson[i].naam);
+					newRow.setAttribute("achternaam", myJson[i].achternaam);
+					newRow.setAttribute("plaats", myJson[i].woonplaats);
+					newRow.setAttribute("straat", myJson[i].straat);
+					newRow.setAttribute("informatie", myJson[i].informatie);
+
+					//cellen in de tabel maken
+					var cel1 = newRow.insertCell(0);
+					var cel2 = newRow.insertCell(1);
+					var cel3 = newRow.insertCell(2);
+					var cel4 = newRow.insertCell(3);
+					var cel5 = newRow.insertCell(4);
+
+					//cellen vullen in de tabel
+					cel1.innerHTML = myJson[i].klantID;
+					cel2.innerHTML = myJson[i].naam;
+					cel3.innerHTML = myJson[i].achternaam;
+					cel4.innerHTML = myJson[i].woonplaats;
+					cel5.innerHTML = "Meer informatie"
+
+					cel5.addEventListener("click", meerInformatie);
+
+
+				}
+
+
+
+			});
+	}
+
+	var btn = document.getElementById("createKlant"); //maak create knop
+	btn.onclick = function () {
+		var x = document.getElementById("createFormId");
+		if (x.style.display === "none") {
+			x.style.display = "block";
+		} else {
+			x.style.display = "none";
+		}
+	}
+	document.querySelector("#delete").addEventListener("click", function () {
+
+		var x = document.getElementById("klantidleftcorner").innerHTML;//get klanten id
+		if (confirm("Wilt u de klant met klantnummer: " + x + " verwijderen?")) {
+
+
+			var fetchoptions = {
+				method: 'DELETE',
+				headers: {
+					'Authorization': 'Bearer ' + window.sessionStorage.getItem("myJWT")
+				}
+			} // alle informatie voor database aanvraag
+			fetch("Database/Klanten/" + x, fetchoptions)
+				.then(function (response) {
+					if (response.ok) {
+						console.log("klant deleted!");
+						modal.style.display = "none";
+						window.location.href = "/klanten.html";
+					} //refresh
+					else if (response.status = 404)
+						console.log("klant not found!");
+					else if (response.status = 403) {
+						document.querySelector("#errorGreen").innerHTML = "Er gaat iets fout, probeer opnieuw in te loggen";
+						console.log("KEEN RECHTEN")
+					}
+					else console.log("Cannot delete klant!");
+				})
+		}
+
+
+	})
+
+	//functie om te kijken of alles is ingevuld
+	function validateCreateForm() {
+		var result = false;
+		var a = document.forms["createForm"]["naam"].value;
+		var b = document.forms["createForm"]["achternaam"].value;
+		var c = document.forms["createForm"]["woonplaats"].value;
+		var d = document.forms["createForm"]["straat"].value;
+		if (a == "" || a.length > 20) {
+			alert("Naam invalied (leeg of te lang)");
+			return result;
+		}
+		if (b == "" || b.length > 20) {
+			alert("achternaam invalied (leeg of te lang)");
+			return result;
+		}
+		if (c == "" || c.length > 20) {
+			alert("woonplaats invalied (leeg of te lang)");
+			return result;
+		}
+		if (d == "" || d.length > 20) {
+			alert("straat invalied (leeg of te lang)");
+			return result;
+		}
+		return true;
+	}
+
+	
+	//functie om te kijken of alles is ingevuld
+	function validateUpdateForm() {
+		var result = false;
+		var a = document.forms["updateForm"]["naam"].value;
+		var b = document.forms["updateForm"]["achternaam"].value;
+		var c = document.forms["updateForm"]["woonplaats"].value;
+		var d = document.forms["updateForm"]["straat"].value;
+		if (a == "" || a.length > 20) {
+			alert("Naam invalied (leeg of te lang)");
+			return result;
+		}
+		if (b == "" || b.length > 20) {
+			alert("achternaam invalied (leeg of te lang)");
+			return result;
+		}
+		if (c == "" || c.length > 20) {
+			alert("woonplaats invalied (leeg of te lang)");
+			return result;
+		}
+		if (d == "" || d.length > 20) {
+			alert("straat invalied (leeg of te lang)");
+			return result;
+		}
+		return true;
+	}
+
+	//We creeren een klant via deze functie
+	document.querySelector("#post").addEventListener("click", function () {
+		console.log("Creating...");
+		if (validateCreateForm()) { //eerst kijken of alles is ingevuld
+			var formData = new FormData(document.querySelector('#createForm'));
+			var encData = new URLSearchParams(formData.entries());
+
+			console.log("2: " + encData);
+			fetch("Database/Klanten", { "method": "POST", "body": encData, "headers": { 'Authorization': 'Bearer ' + window.sessionStorage.getItem("myJWT") } }) //request
+				.then(function (response) {
+					if (response.ok) {
+						console.log("Klant saved!"); //input velden leeg zetten
+						document.getElementById("createName").value = "";
+						document.getElementById("createAchternaam").value = "";
+						document.getElementById("createWoonplaats").value = "";
+						document.getElementById("createStraat").value = "";
+						document.getElementById("createInformatie").value = "";
+						window.location.href = "/klanten.html"; //refreshen
+					}
+					else if (response.status = 404) {
+						console.log("Klant not saved!");
+					}
+					else {
+						document.querySelector("#errorGreen").innerHTML = "Er gaat iets fout, probeer opnieuw in te loggen";
+						console.log("Cannot save Klant!");
+					}
+
+
+				});
+		}
+	})
+
+	//wat komt er in het model te staan als er op "meer informatie" geklikt wordt
+	function meerInformatie() {
+		modal.style.display = "block";
+
+		var parent = event.target.parentNode;
+
+		var klantID = parent.getAttribute('KlantID');
+		var naam = parent.getAttribute('naam');
+		var achternaam = parent.getAttribute('achternaam');
+		var plaats = parent.getAttribute('plaats');
+		var straat = parent.getAttribute('straat');
+		var informatie = parent.getAttribute('informatie');
+
+		document.getElementById("klantidleftcorner").innerHTML = klantID;
+		document.querySelector("#KlantID").innerHTML = ("KlantID:" + klantID + "<br>");
+		document.querySelector("#Naam").innerHTML = ("Naam: " + naam);
+		document.querySelector("#Achternaam").innerHTML = (achternaam + "<br>");
+		document.querySelector("#Plaats").innerHTML = (plaats + "<br>");
+		document.querySelector("#Straat").innerHTML = ("Adress: " + straat);
+		document.querySelector("#Informatie").innerHTML = ("Overige informatie: <br> " + informatie);
+
+		document.getElementById("createNameUpdate").defaultValue = naam;
+			document.getElementById("createAchternaamUpdate").defaultValue = achternaam;
+				document.getElementById("createStraatUpdate").defaultValue = straat;
+					document.getElementById("createWoonplaatsUpdate").defaultValue = plaats;
+						document.getElementById("createInformatieUpdate").defaultValue = informatie;
+	}
+	//maak het model
+	var modal = document.getElementById('myModal');
+
+
+	// x sluit het element
+	var span = document.getElementsByClassName("close")[0];
+
+	// wanneer op x geklikt wordt, sluit het daadwerkelijk
+	span.onclick = function () {
+		modal.style.display = "none";
+	}
+
+	// buiten het model, sluiten
+	window.onclick = function (event) {
+		if (event.target == modal) {
+			modal.style.display = "none";
+		}
+	}
+
+	//we laten de rol en gebruikersnaam bovenin zien
+	function getRole() {
+		var jwt = window.sessionStorage.getItem("myJWT");
+		if(jwt == null){
+			window.location.href = "/index.html";
+			window.sessionStorage.removeItem("myJWT");
+		}
+			
+		}   
+
+
+	//JWT geparsed om duideljke uitcome te krijgen
+	function parseJwt(token) {
+		var base64Url = token.split('.')[1];
+		var base64 = base64Url.replace('-', '+').replace('_', '/');
+		return JSON.parse(window.atob(base64));
+	}
+
+	function logout(){
+		window.sessionStorage.removeItem("myJWT");
+		window.location.href = "/handel/index.html";
+	}
+	
+	getRole();
+	loadKlanten();
+</script>
+</body>
+
+</html>

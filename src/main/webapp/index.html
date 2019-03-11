@@ -1,12 +1,67 @@
 <!DOCTYPE html>
 <html>
-<title>Dynamic Example</title>
+<head>
+<title>Klantenbeheer systeem</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css"
+	media="only screen and (min-width: 750px)" href="style.css">
+<link rel="stylesheet" media="only screen and (max-width: 750px)"
+	href="stylenarrow.css" />
+</head>
 <body>
-	<form action="DynamicServlet.do" method="get">
-		<div>
-			<input type="text" name="username" /> <input type="submit"
-				value="Go!" />
-		</div>
-	</form>
+
+		<form id="loginForm">
+			<input type="text" name="username" id="username"> <input
+				type="password" name="password" id="password"> <input
+				type="button" value="Log in" id="login" />
+		</form>
+	<script>
+	
+	//inloggen
+function login(event){
+	var formData = new FormData(document.querySelector("#loginForm"));
+	var encData = new URLSearchParams(formData.entries());
+	
+	//connectie naar database
+	fetch("Database/authentication", { method: 'POST', body : encData})
+	.then(function(response){
+		console.log(response);
+		if(response.ok){ 
+			console.log("Inloggen geslaagd");
+			return response.json();
+			}else 
+			console.log("failed");
+			throw "Wrong username/password";
+		})
+		.then(myJson => window.sessionStorage.setItem("myJWT", myJson.JWT))
+		.catch(error => console.log(error));
+		var data = window.sessionStorage.getItem("myJWT");
+		console.log(data);
+		var decodedJWT = parseJwt(data);
+		
+		var jwtdate = new Date(decodedJWT["exp"] * 1000);
+		var nowdate = new Date(Date.now());
+		 if(jwtdate > nowdate){
+		var naam = decodedJWT["sub"]
+		var role = decodedJWT["role"]
+		if(role == "admin"){
+			window.location.href = "/handel/admin.html";
+			
+		}
+}
+}
+	
+
+//JWT geparsed om duideljke uitcome te krijgen
+function parseJwt(token) {
+	var base64Url = token.split('.')[1];
+	var base64 = base64Url.replace('-', '+').replace('_', '/');
+	return JSON.parse(window.atob(base64));
+}
+
+document.querySelector("#login").addEventListener("click", login);
+
+
+</script>
 </body>
 </html>
