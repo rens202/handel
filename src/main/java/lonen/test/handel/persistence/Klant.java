@@ -8,6 +8,7 @@ public class Klant {
 	private String plaats;
 	private String informatie; //JAJAJAJA
 	
+	@Before
 	public Klant(String naam, int klantID, String achternaam, String straat, String woonplaats, String informatie) {
 		this.naam = naam;
 		this.klantID = klantID;
@@ -35,6 +36,7 @@ public class Klant {
 		return klantID;
 	}
 
+	@Test
 	public void setKlantID(int klantID) {
 		this.klantID = klantID;
 	}
